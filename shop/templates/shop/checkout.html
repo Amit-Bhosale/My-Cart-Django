@@ -1,0 +1,163 @@
+{% extends 'shop/layout.html'  %}
+
+{%block title%} My-Cart | Contact {%endblock%}
+
+{%block body %}
+<div class="alert alert-info alert-dismissible mb-0" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>
+        <strong>
+           CheckOut Your Products And Proceed To Pay      
+        </strong>
+</div>        
+
+
+
+<div class="container ">
+	<div class="col my-4">
+		<h2>Review Your Items  </h2>
+        <div class="mt-4">
+            <ul class="list-group"  id="items">
+
+            </ul>
+            
+<div class="alert alert-primary" role="alert">
+  <span id="totalPrice"></span>
+</div>
+
+            
+        </div>
+	
+
+        <!--Your Address Line Start Here-->
+
+		<div class="col my-4">
+		<h2>Enter Your Drop Location </h2>
+		<form method="post" action="/shop/checkout/">{% csrf_token %}
+			<input type="hidden" name="itemsJson" id="itemsJson">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="name">Name</label>
+                    <input type="name" class="form-control" id="name" name="name" placeholder="Name">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="inputEmail4">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Email">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputAddress">Address</label>
+                <input type="text" class="form-control" id="address1" name="address1" placeholder="1234 Main St">
+            </div>
+            <div class="form-group">
+                <label for="inputAddress2">Address Line 2</label>
+                <input type="text" class="form-control" id="address2" name="address2" placeholder="Apartment, studio, or floor">
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputCity">City</label>
+                    <input type="text" class="form-control" id="city" name="city">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="inputState">State</label>
+                    <input type="text" class="form-control" id="state" name="state" placeholder="Enter State">
+                    </select>
+                 </div>
+                <div class="form-group col-md-2">
+                    <label for="inputZip">Zip code</label>
+                    <input type="text" class="form-control" id="zip_code" name="zip_code">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputZip">Phone Number</label>
+                <input type="tel" class="form-control" id="phone" name="phone">
+            </div>
+            <button type="submit" class="btn btn-primary">Place Order</button>
+        </form>
+    </div>
+</div>	
+		
+{% endblock %}
+
+{% block js %}
+<script>
+
+// Find out the cart items from localStorage
+if (localStorage.getItem('cart') == null) {
+    var cart = {};
+} else {
+    cart = JSON.parse(localStorage.getItem('cart'));
+    updateCart(cart);
+}
+console.log(cart);
+var sum=0;
+var totalPrice=0;
+if ($.isEmptyObject(cart)){ //If Cart is Empty Print This
+	mystr=`<h3><strong>Your Cart is Empty,Please add your product in Cart to Checkout!</h2></strong>`
+    $('#items').append(mystr); 
+
+}
+else
+{
+for(item in cart) //Printing products in myitems
+{   
+
+	let qty=cart[item][0];
+	let id=cart[item][1];
+    let name=cart[item][2];
+    let itemPrice=cart[item][3];
+	sum = sum + qty;
+    totalPrice = totalPrice + qty * itemPrice
+	mystr=`<li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${name}
+                    <h5 class="card-title" id="prid">{{products.id}}</h5>
+                    <span class="badge badge-primary badge-pill">Qty:${qty}</span>
+                    Rs: ${itemPrice}
+                <button class="btn btn-primary remove" onclick="deleteItem(${id})">Remove</button>
+                </li>`
+    $('#items').append(mystr); 
+}
+}
+
+
+
+function deleteItem(a) {
+delete (cart['pr' + a]);
+updateCart(cart);
+console.log(cart);
+location.reload();
+}
+
+
+$('.cart').click(function() {
+    var idstr = this.id.toString();
+
+});
+
+
+function updateCart(cart) {
+    var sum=0;
+    for (var item in cart) {
+        sum = sum + cart[item][0];
+
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    document.getElementById('cart').innerHTML = sum;
+
+}
+
+
+document.getElementById('cart').innerHTML = sum;
+document.getElementById('totalPrice').innerHTML ="<h6> Your Total Price: <strong> "+ totalPrice +"</strong> </h6>";
+
+//Add value to the hidden input in the form
+$('#itemsJson').val(JSON.stringify(cart));
+
+
+
+{% if thank %}
+alert('Thankyou For Ordering Product,You Can Track Your Product using Tracker,Your Order Id is ={{id}}');
+localStorage.clear();
+document.location = "/shop/tracker";
+{% endif %}
+</script>	
+{%endblock%}
